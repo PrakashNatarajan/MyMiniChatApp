@@ -1,0 +1,82 @@
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Go WebSocket Tutorial</title>
+</head>
+<body>
+    <h1>WebSocket Chat Test</h1>
+	<h3 id="LoggedUser"></h3>
+	<form>
+        <p>
+            recipient: <input id="recipient" type="text" value="User">
+        </p>
+    </form>
+    <button onclick="initChat();">Start Chat</button>
+	<div id="MessageBlock" style="display:none;">
+    <form>
+        <p>
+            Message: <input id="message" type="text" value="Hello, world!">
+        </p>
+    </form>
+    <button onclick="sendmsg();">Send Message</button>
+	</div>
+    <pre id="output"></pre>
+
+    <script type="text/javascript">
+	    var urlParams = new URLSearchParams(window.location.search);
+		var currUser = urlParams.get('currUser');
+        var output = document.getElementById("output");
+		var LoggedUser = document.getElementById("LoggedUser");
+		LoggedUser.innerHTML += "Welcome " + currUser
+        var sendsock = null;
+        var chatwsuri = "ws://username:password@localhost:5600/sender?CurrUser=" + currUser;
+
+        window.onload = function() {
+
+            console.log("onload");
+
+            sendsock = new WebSocket(chatwsuri);
+
+            sendsock.onopen = function() {
+                console.log("connected to Chat websocket: " + chatwsuri);
+            }
+
+            sendsock.onclose = function(chaterr) {
+                console.log("Chat connection closed (" + chaterr.code + ")");
+            }
+
+            sendsock.onmessage = function(chatevent) {
+                console.log("Chat message received: " + chatevent.data);
+				var receivedData = JSON.parse(chatevent.data)
+				if (Array.isArray(receivedData)) {
+				  for (let inx = 0; inx < receivedData.length; inx++) {
+				    msgUsr = receivedData[inx]
+				    output.innerHTML += msgUsr.sender + " ==> " + msgUsr.text + " ==> " + msgUsr.recipient + "\n";
+				  }
+				} else if (receivedData.type == "ClientConn") {
+				  output.innerHTML += "Server: " + receivedData.body + "\n";
+				} else {
+				  output.innerHTML += receivedData.sender + " ==> " + receivedData.text + " ==> " + receivedData.recipient + "\n";
+				}
+            }
+            
+        };
+
+        function sendmsg() {
+            var recipient = document.getElementById('recipient').value;
+            var msgTxt = document.getElementById('message').value;
+            msgData = JSON.stringify({type: 'Text', sender: currUser, recipient: recipient, text: msgTxt})
+            sendsock.send(msgData);
+        };
+        function initChat() {
+			var recipient = document.getElementById('recipient').value;
+            msgData = JSON.stringify({type: 'InitChat', sender: currUser, recipient: recipient, text: "Initiated"})
+            sendsock.send(msgData);
+			document.getElementById("MessageBlock").style.display = "block";
+        };
+    </script>
+    
+</body>
+</html>
