@@ -6,6 +6,7 @@ import (
   "fmt"
   "log"
   "net/http"
+  "encoding/json"
   "github.com/gorilla/websocket"
   amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -147,12 +148,14 @@ func (pool *Pool)ReceiveQueueMsgs() {
 
 func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
   log.SetFlags(log.LstdFlags | log.Lmicroseconds) //To Print in Millisecond
+  message := Message{}
   for quMsg := range messages {
     log.Printf("Received a message: %s", quMsg.Body)
     fmt.Println("Sending message to right client in Pool")
+    json.Unmarshal(quMsg.Body, &message)
     for clntName, clientSock := range pool.Clients {
       fmt.Println(clntName)
-      if err := clientSock.Conn.WriteJSON(quMsg.Body); err != nil {
+      if err := clientSock.Conn.WriteJSON(message); err != nil {
         fmt.Println(err)
         return
       }
