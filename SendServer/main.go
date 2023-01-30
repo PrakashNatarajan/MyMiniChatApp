@@ -140,7 +140,7 @@ func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
   log.SetFlags(log.LstdFlags | log.Lmicroseconds) //To Print in Millisecond
   for quMsg := range messages {
     log.Printf("Received a message: %s", quMsg.Body)
-    fmt.Println("Sending message to all clients in Pool")
+    fmt.Println("Sending message to right client in Pool")
     for clntName, clientSock := range pool.Clients {
       fmt.Println(clntName)
       msgData := Message{Type: 1, Body: string(quMsg.Body)}

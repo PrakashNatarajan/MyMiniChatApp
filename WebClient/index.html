@@ -31,23 +31,49 @@
 		var LoggedUser = document.getElementById("LoggedUser");
 		LoggedUser.innerHTML += "Welcome " + currUser
         var sendsock = null;
-        var chatwsuri = "ws://username:password@localhost:5600/sender?CurrUser=" + currUser;
+        var sendwsuri = "ws://username:password@localhost:5600/sender?CurrUser=" + currUser;
+        var recesock = null;
+        var recewsuri = "ws://username:password@localhost:6500/receiver?CurrUser=" + currUser;
 
         window.onload = function() {
 
             console.log("onload");
 
-            sendsock = new WebSocket(chatwsuri);
+            sendsock = new WebSocket(sendwsuri);
+            recesock = new WebSocket(recewsuri);
 
             sendsock.onopen = function() {
-                console.log("connected to Chat websocket: " + chatwsuri);
+                console.log("connected to Chat websocket: " + sendwsuri);
             }
 
             sendsock.onclose = function(chaterr) {
                 console.log("Chat connection closed (" + chaterr.code + ")");
             }
 
+            recesock.onopen = function() {
+                console.log("connected to Chat websocket: " + recewsuri);
+            }
+
+            recesock.onclose = function(chaterr) {
+                console.log("Chat connection closed (" + chaterr.code + ")");
+            }
+
             sendsock.onmessage = function(chatevent) {
+                console.log("Chat message received: " + chatevent.data);
+                var receivedData = JSON.parse(chatevent.data)
+                if (Array.isArray(receivedData)) {
+                  for (let inx = 0; inx < receivedData.length; inx++) {
+                    msgUsr = receivedData[inx]
+                    output.innerHTML += msgUsr.sender + " ==> " + msgUsr.text + " ==> " + msgUsr.recipient + "\n";
+                  }
+                } else if (receivedData.type == "ClientConn") {
+                  output.innerHTML += "Server: " + receivedData.body + "\n";
+                } else {
+                  output.innerHTML += receivedData.sender + " ==> " + receivedData.text + " ==> " + receivedData.recipient + "\n";
+                }
+            }
+
+            recesock.onmessage = function(chatevent) {
                 console.log("Chat message received: " + chatevent.data);
 				var receivedData = JSON.parse(chatevent.data)
 				if (Array.isArray(receivedData)) {
