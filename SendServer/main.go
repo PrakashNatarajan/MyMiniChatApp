@@ -37,9 +37,16 @@ func NewPool() *Pool {
   }
 }
 
-type Message struct {
-  Type int    `json:"type"`
+type ClientConnMsg struct {
+  Type string `json:"type"`
   Body string `json:"body"`
+}
+
+type Message struct {
+  Type string `json:"type"`
+  Sender string `json:"sender"`
+  Recipient string `json:"recipient"`
+  Text string `json:"text"`
 }
 
 func (client *Client) ReciveClient() {
@@ -69,7 +76,7 @@ func (pool *Pool) ManageClientConns() {
       fmt.Println("Size of Connection Pool: ", len(pool.Clients))
       for clntName, clientSock := range pool.Clients {
         fmt.Println(clntName)
-        clientSock.Conn.WriteJSON(Message{Type: 1, Body: "New User Joined..."})
+        clientSock.Conn.WriteJSON(ClientConnMsg{Type: 1, Body: "New User Joined..."})
       }
       break
     case client := <-pool.Unregister:
@@ -78,7 +85,7 @@ func (pool *Pool) ManageClientConns() {
       fmt.Println("Size of Connection Pool: ", len(pool.Clients))
       for clntName, clientSock := range pool.Clients {
         fmt.Println(clntName)
-        clientSock.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
+        clientSock.Conn.WriteJSON(ClientConnMsg{Type: 1, Body: "User Disconnected..."})
       }
       break
     }
