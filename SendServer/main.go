@@ -56,13 +56,15 @@ func (client *Client) ReciveClient() {
   }()
 
   for {
-    messageType, p, err := client.Conn.ReadMessage()
+    //messageType, p, err := client.Conn.ReadMessage()
+    message := &Message{}
+    err := client.Conn.ReadJSON(message)
     if err != nil {
       log.Println(err)
       return
     }
     //[]byte to convert as string string([]byte) []byte is not readable
-    message := Message{Type: messageType, Body: string(p)}
+    //message := Message{Type: messageType, Body: string(p)}
     fmt.Printf("Message Received: %+v\n", message)
   }
 
@@ -76,7 +78,7 @@ func (pool *Pool) ManageClientConns() {
       fmt.Println("Size of Connection Pool: ", len(pool.Clients))
       for clntName, clientSock := range pool.Clients {
         fmt.Println(clntName)
-        clientSock.Conn.WriteJSON(ClientConnMsg{Type: 1, Body: "New User Joined..."})
+        clientSock.Conn.WriteJSON(ClientConnMsg{Type: "ClientConn", Body: "New User Joined..."})
       }
       break
     case client := <-pool.Unregister:
@@ -85,7 +87,7 @@ func (pool *Pool) ManageClientConns() {
       fmt.Println("Size of Connection Pool: ", len(pool.Clients))
       for clntName, clientSock := range pool.Clients {
         fmt.Println(clntName)
-        clientSock.Conn.WriteJSON(ClientConnMsg{Type: 1, Body: "User Disconnected..."})
+        clientSock.Conn.WriteJSON(ClientConnMsg{Type: "ClientConn", Body: "User Disconnected..."})
       }
       break
     }
@@ -150,8 +152,7 @@ func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
     fmt.Println("Sending message to right client in Pool")
     for clntName, clientSock := range pool.Clients {
       fmt.Println(clntName)
-      msgData := Message{Type: 1, Body: string(quMsg.Body)}
-      if err := clientSock.Conn.WriteJSON(msgData); err != nil {
+      if err := clientSock.Conn.WriteJSON(quMsg.Body); err != nil {
         fmt.Println(err)
         return
       }
