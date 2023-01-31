@@ -206,8 +206,6 @@ func serveWs(pool *Pool, resWtr http.ResponseWriter, req *http.Request) {
 
   CurrUser := req.FormValue("CurrUser")
 
-  fmt.Println(CurrUser)
-
   client := &Client{
 	  Name: CurrUser,
     Conn: conn,
@@ -233,7 +231,7 @@ func setupRoutes() {
 }
 
 func main() {
-  fmt.Println("Distributed Chat App v0.01")
+  fmt.Println("Distributed Receiver Chat App v0.01")
   setupRoutes()
   http.ListenAndServe(":5600", nil)
 }

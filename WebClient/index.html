@@ -31,9 +31,9 @@
 		var LoggedUser = document.getElementById("LoggedUser");
 		LoggedUser.innerHTML += "Welcome " + currUser
         var sendsock = null;
-        var sendwsuri = "ws://username:password@localhost:5600/sender?CurrUser=" + currUser;
+        var sendwsuri = "ws://localhost:5600/sender?CurrUser=" + currUser;
         var recesock = null;
-        var recewsuri = "ws://username:password@localhost:6500/receiver?CurrUser=" + currUser;
+        var recewsuri = "ws://localhost:6500/receiver?CurrUser=" + currUser;
 
         window.onload = function() {
 

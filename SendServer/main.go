@@ -150,7 +150,7 @@ func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
   log.SetFlags(log.LstdFlags | log.Lmicroseconds) //To Print in Millisecond
   message := Message{}
   for quMsg := range messages {
-    log.Printf("Received a message: %s", quMsg.Body)
+    fmt.Println("Size of Connection Pool: ", len(pool.Clients))
     fmt.Println("Sending message to right client in Pool")
     json.Unmarshal(quMsg.Body, &message)
     for clntName, clientSock := range pool.Clients {
@@ -159,20 +159,24 @@ func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
         fmt.Println(err)
         return
       }
+      log.Printf("Received a message: %s", message)
     }
   }
 }
 
 func serveWs(pool *Pool, res http.ResponseWriter, req *http.Request) {
   fmt.Println("WebSocket Endpoint Hit")
-  currUser := req.FormValue("currUser")
   conn, err := connUpgrade(res, req)
   if err != nil {
     fmt.Fprintf(res, "%+v\n", err)
   }
 
+  CurrUser := req.FormValue("CurrUser")
+
+  fmt.Println(CurrUser)
+
   client := &Client{
-    Name: currUser,
+    Name: CurrUser,
     Conn: conn,
     Pool: pool,
   }
@@ -186,7 +190,7 @@ func setupRoutes() {
   go pool.ManageClientConns()
 
   go pool.ReceiveQueueMsgs()
-  
+
   http.HandleFunc("/receiver", func(res http.ResponseWriter, req *http.Request) {
     serveWs(pool, res, req)
   })
@@ -194,7 +198,7 @@ func setupRoutes() {
 }
 
 func main() {
-  fmt.Println("Distributed Chat App v0.01")
+  fmt.Println("Distributed Sender Chat App v0.01")
   setupRoutes()
   http.ListenAndServe(":6500", nil)
 }
