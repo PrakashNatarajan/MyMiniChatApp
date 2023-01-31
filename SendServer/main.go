@@ -66,6 +66,11 @@ func (client *Client) ReciveClient() {
     }
     //[]byte to convert as string string([]byte) []byte is not readable
     //message := Message{Type: messageType, Body: string(p)}
+    //Sending back to sender
+    if err := client.Conn.WriteJSON(message); err != nil {
+      fmt.Println(err)
+      return
+    }
     fmt.Printf("Message Received: %+v\n", message)
   }
 

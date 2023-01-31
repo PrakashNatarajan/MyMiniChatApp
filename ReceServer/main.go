@@ -92,21 +92,26 @@ func (pool *Pool)EventQueueConn() () {
   failOnError(err, "Failed to declare a queue")
 }
 
-func (clnt *Client) ReceivingHandler() {
+func (client *Client) ReceivingHandler() {
   defer func() {
-    clnt.Pool.Unregister <- clnt
-    clnt.Conn.Close()
+    client.Pool.Unregister <- client
+    client.Conn.Close()
   }()
 
   for {
     message := &Message{}
-    err := clnt.Conn.ReadJSON(message)
+    err := client.Conn.ReadJSON(message)
     if err != nil {
       log.Println(err)
       return
     }
 
-    clnt.SendMessageQueue(message)
+    client.SendMessageQueue(message)
+    //Sending back to sender
+    if err := client.Conn.WriteJSON(message); err != nil {
+      fmt.Println(err)
+      return
+    }
     fmt.Printf("Message Received: %+v\n", message)
   }
 }
