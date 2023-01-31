@@ -150,17 +150,15 @@ func (pool *Pool)ReceiveSendMsgs(messages <-chan amqp.Delivery) {
   log.SetFlags(log.LstdFlags | log.Lmicroseconds) //To Print in Millisecond
   message := Message{}
   for quMsg := range messages {
-    fmt.Println("Size of Connection Pool: ", len(pool.Clients))
     fmt.Println("Sending message to right client in Pool")
     json.Unmarshal(quMsg.Body, &message)
-    for clntName, clientSock := range pool.Clients {
-      fmt.Println(clntName)
-      if err := clientSock.Conn.WriteJSON(message); err != nil {
-        fmt.Println(err)
-        return
-      }
-      log.Printf("Received a message: %s", message)
+    clientSock := pool.Clients[message.Recipient]
+    fmt.Println(clientSock.Name)
+    if err := clientSock.Conn.WriteJSON(message); err != nil {
+      fmt.Println(err)
+      return
     }
+    log.Printf("Received a message: %s", message)
   }
 }
 
